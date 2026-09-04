@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vt-helper</title>
+<meta name="description" content="A tiny, zero-dependency helper for the browser View Transitions API with automatic fallback for unsupported browsers." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f6f7f9;
+    --fg: #1a1d23;
+    --fg-muted: #5b616e;
+    --border: #e3e5e9;
+    --accent: #6d5ef8;
+    --accent-fg: #ffffff;
+    --code-bg: #f6f7f9;
+    --code-fg: #1a1d23;
+    --success: #1a7f4e;
+    --warn: #b45309;
+    --shadow: 0 1px 2px rgba(20, 20, 30, 0.06), 0 8px 24px rgba(20, 20, 30, 0.04);
+    --radius: 10px;
+    font-synthesis: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b;
+      --bg-alt: #1b1e25;
+      --fg: #eceef2;
+      --fg-muted: #a0a6b2;
+      --border: #2a2e37;
+      --accent: #9b8cfd;
+      --accent-fg: #14161b;
+      --code-bg: #1b1e25;
+      --code-fg: #eceef2;
+      --success: #4ade95;
+      --warn: #fbbf24;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+
+  a { color: var(--accent); }
+
+  code, pre {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  code {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.15em 0.4em;
+    border-radius: 5px;
+    font-size: 0.88em;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 0.86em;
+    line-height: 1.55;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 1em;
+  }
+
+  .kw { color: #c678dd; }
+  .fn { color: #61afef; }
+  .str { color: #98c379; }
+  .cm { color: #7f848e; font-style: italic; }
+  @media (prefers-color-scheme: light) {
+    .kw { color: #a626a4; }
+    .fn { color: #4078f2; }
+    .str { color: #50a14f; }
+    .cm { color: #a0a1a7; font-style: italic; }
+  }
+
+  header.site {
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+
+  .nav-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none;
+    color: var(--fg);
+  }
+
+  .brand .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    view-transition-name: brand-dot;
+  }
+
+  nav.links {
+    display: flex;
+    gap: 18px;
+    font-size: 0.92rem;
+  }
+
+  nav.links a {
+    color: var(--fg-muted);
+    text-decoration: none;
+  }
+  nav.links a:hover { color: var(--fg); }
+
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  .hero {
+    padding: 64px 0 32px;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero p.lede {
+    color: var(--fg-muted);
+    font-size: 1.15rem;
+    max-width: 60ch;
+    margin: 0 0 24px;
+  }
+
+  .badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .badges img { display: block; height: 20px; }
+
+  .cta-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+
+  section {
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  section > h2 {
+    font-size: 1.5rem;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  section > p.sub {
+    color: var(--fg-muted);
+    margin: 0 0 24px;
+    max-width: 64ch;
+  }
+
+  .status-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    margin-bottom: 20px;
+  }
+  .status-banner .pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warn);
+  }
+  .status-banner.supported .pulse { background: var(--success); }
+  .status-banner.supported { color: var(--success); }
+
+  .demo {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .demo h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+  }
+
+  .demo p.desc {
+    margin: 0 0 16px;
+    color: var(--fg-muted);
+    font-size: 0.92rem;
+  }
+
+  .demo-stage {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  /* --- Demo 1: dark mode toggle card --- */
+  .toggle-card {
+    flex: 1;
+    min-width: 220px;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: none;
+  }
+  .toggle-card.dark {
+    background: #14161b;
+    color: #eceef2;
+    border-color: #2a2e37;
+  }
+  .toggle-card h4 { margin: 0 0 6px; font-size: 0.95rem; }
+  .toggle-card p { margin: 0; font-size: 0.85rem; opacity: 0.75; }
+
+  ::view-transition-old(demo-toggle),
+  ::view-transition-new(demo-toggle) {
+    animation-duration: 0.5s;
+  }
+
+  /* --- Demo 2: list reorder --- */
+  .reorder-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 220px;
+  }
+  .reorder-list li {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  /* --- Demo 3: panel swap --- */
+  .panel-stage {
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 20px;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  button.demo-btn {
+    padding: 8px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.demo-btn:hover { border-color: var(--accent); }
+  button.demo-btn:active { transform: translateY(1px); }
+
+  .api-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+  .api-table th, .api-table td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .api-table th { color: var(--fg-muted); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; }
+
+  .fn-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 32px 0 8px;
+    flex-wrap: wrap;
+  }
+  .fn-heading code {
+    font-size: 1.05rem;
+    padding: 3px 8px;
+  }
+  .fn-heading .ret {
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 24px 48px;
+    text-align: center;
+    color: var(--fg-muted);
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 40px 0 24px; }
+    .hero h1 { font-size: 1.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="nav-inner">
+    <a class="brand" href="#top"><span class="dot"></span>vt-helper</a>
+    <nav class="links">
+      <a href="#install">Install</a>
+      <a href="#examples">Examples</a>
+      <a href="#api">API</a>
+      <a href="https://github.com/valyefimov/vt-helper" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <h1>vt-helper</h1>
+    <p class="lede">
+      A tiny, zero-dependency helper for the browser
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API" target="_blank" rel="noopener">View Transitions API</a>,
+      with automatic fallback for unsupported browsers.
+    </p>
+    <div class="badges">
+      <a href="https://www.npmjs.com/package/vt-helper"><img src="https://img.shields.io/npm/v/vt-helper.svg" alt="npm version" /></a>
+      <a href="https://www.npmjs.com/package/vt-helper"><img src="https://img.shields.io/npm/dm/vt-helper.svg" alt="npm downloads" /></a>
+      <a href="https://github.com/valyefimov/vt-helper/actions/workflows/ci.yml"><img src="https://github.com/valyefimov/vt-helper/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+      <a href="https://github.com/valyefimov/vt-helper/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/vt-helper.svg" alt="license" /></a>
+    </div>
+    <div class="cta-row">
+      <a class="btn primary" href="#install">Get started</a>
+      <a class="btn" href="https://github.com/valyefimov/vt-helper" target="_blank" rel="noopener">View on GitHub</a>
+    </div>
+  </section>
+
+  <section id="why">
+    <h2>Why</h2>
+    <p class="sub">
+      <code>document.startViewTransition</code> is great, but every call site ends up rewriting the same
+      feature-detection boilerplate. <code>vt-helper</code> wraps it once so your code looks the same
+      whether or not the browser supports it &mdash; on unsupported browsers your DOM update still runs,
+      you just lose the animation.
+    </p>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <pre><code><span class="fn">npm</span> install vt-helper</code></pre>
+    <pre><code><span class="kw">import</span> { transition } <span class="kw">from</span> <span class="str">'vt-helper'</span>;
+
+button.addEventListener(<span class="str">'click'</span>, () => {
+  <span class="fn">transition</span>(() => {
+    document.body.classList.toggle(<span class="str">'dark'</span>);
+  });
+});</code></pre>
+  </section>
+
+  <section id="examples">
+    <h2>Live examples</h2>
+    <p class="sub">These demos run <code>vt-helper</code> loaded straight from a CDN, right here in the page.</p>
+
+    <div id="support-banner" class="status-banner">
+      <span class="pulse"></span>
+      <span id="support-text">Checking View Transitions support&hellip;</span>
+    </div>
+
+    <div class="demo">
+      <h3>1. Theme toggle</h3>
+      <p class="desc">
+        Wrap a state change in <code>transition()</code>. Supported browsers cross-fade the change automatically; the fallback just applies the class.
+      </p>
+      <div class="demo-stage">
+        <div class="toggle-card" id="toggle-card" style="view-transition-name: demo-toggle;">
+          <h4>Card title</h4>
+          <p>Click the button to toggle dark mode with a view transition.</p>
+        </div>
+      </div>
+      <button class="demo-btn" id="toggle-btn">Toggle theme</button>
+      <pre><code><span class="kw">import</span> { transition } <span class="kw">from</span> <span class="str">'vt-helper'</span>;
+
+card.style.viewTransitionName = <span class="str">'demo-toggle'</span>; <span class="cm">// scope the animation</span>
+
+button.addEventListener(<span class="str">'click'</span>, () => {
+  <span class="fn">transition</span>(() => {
+    card.classList.toggle(<span class="str">'dark'</span>);
+  });
+});</code></pre>
+    </div>
+
+    <div class="demo">
+      <h3>2. Reorder a list</h3>
+      <p class="desc">
+        Each list item keeps a stable <code>view-transition-name</code>, so the browser animates items sliding to their new position.
+      </p>
+      <div class="demo-stage">
+        <ul class="reorder-list" id="reorder-list">
+          <li style="view-transition-name: item-a;">Alpha</li>
+          <li style="view-transition-name: item-b;">Bravo</li>
+          <li style="view-transition-name: item-c;">Charlie</li>
+        </ul>
+      </div>
+      <button class="demo-btn" id="reorder-btn">Shuffle</button>
+      <pre><code>button.addEventListener(<span class="str">'click'</span>, () => {
+  <span class="fn">transition</span>(() => {
+    list.append(list.firstElementChild); <span class="cm">// move first item to the end</span>
+  });
+});</code></pre>
+    </div>
+
+    <div class="demo">
+      <h3>3. Sequenced steps</h3>
+      <p class="desc">
+        <code>transitionSequence()</code> runs each step's transition only after the previous one has fully finished, so steps never overlap.
+      </p>
+      <div class="demo-stage">
+        <div class="panel-stage" id="sequence-panel" style="view-transition-name: seq-panel;">
+          Step 0 of 3
+        </div>
+      </div>
+      <button class="demo-btn" id="sequence-btn">Run sequence</button>
+      <pre><code><span class="kw">import</span> { transitionSequence } <span class="kw">from</span> <span class="str">'vt-helper'</span>;
+
+<span class="kw">await</span> <span class="fn">transitionSequence</span>([
+  () => setStep(1),
+  () => setStep(2),
+  () => setStep(3),
+]);</code></pre>
+    </div>
+  </section>
+
+  <section id="api">
+    <h2>API reference</h2>
+
+    <div class="fn-heading">
+      <code>transition(callback)</code>
+      <span class="ret">&rarr; <code>TransitionHandle</code></span>
+    </div>
+    <p class="sub">
+      Wraps <code>document.startViewTransition(callback)</code>. <code>callback</code> may be sync or return a <code>Promise</code>.
+      On unsupported browsers, runs <code>callback</code> via <code>requestAnimationFrame</code> (falling back to a microtask
+      outside the DOM) and returns a handle whose promises resolve once the callback settles.
+    </p>
+    <pre><code><span class="kw">interface</span> TransitionHandle {
+  <span class="kw">readonly</span> finished: Promise&lt;<span class="kw">void</span>&gt;;
+  <span class="kw">readonly</span> ready: Promise&lt;<span class="kw">void</span>&gt;;
+  <span class="kw">readonly</span> updateCallbackDone: Promise&lt;<span class="kw">void</span>&gt;;
+  skipTransition(): <span class="kw">void</span>;
+}</code></pre>
+    <p class="sub">On unsupported browsers, <code>ready</code>, <code>finished</code>, and <code>updateCallbackDone</code> all resolve (or reject) together once <code>callback</code> settles, and <code>skipTransition()</code> is a no-op.</p>
+
+    <div class="fn-heading">
+      <code>transitionSequence(callbacks)</code>
+      <span class="ret">&rarr; <code>Promise&lt;void&gt;</code></span>
+    </div>
+    <p class="sub">
+      Runs an array of <code>TransitionCallback</code>s in order, calling <code>transition()</code> for each and awaiting its
+      <code>finished</code> promise before starting the next. If a step throws or rejects, the sequence stops and the
+      returned promise rejects with that error.
+    </p>
+
+    <div class="fn-heading">
+      <code>isViewTransitionsSupported()</code>
+      <span class="ret">&rarr; <code>boolean</code></span>
+    </div>
+    <p class="sub">Feature-detects <code>document.startViewTransition</code>. Useful if you want to branch your own logic instead of relying on the built-in fallback.</p>
+
+    <table class="api-table">
+      <thead>
+        <tr><th>Export</th><th>Kind</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>transition</code></td><td>function</td><td>Run a single transition step.</td></tr>
+        <tr><td><code>transitionSequence</code></td><td>function</td><td>Run steps one after another, never overlapping.</td></tr>
+        <tr><td><code>isViewTransitionsSupported</code></td><td>function</td><td>Feature detection for <code>document.startViewTransition</code>.</td></tr>
+        <tr><td><code>TransitionCallback</code></td><td>type</td><td><code>() =&gt; void | Promise&lt;void&gt;</code></td></tr>
+        <tr><td><code>TransitionHandle</code></td><td>type</td><td>Mirrors the native <code>ViewTransition</code> interface.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="browser-support">
+    <h2>Browser support</h2>
+    <p class="sub">
+      The View Transitions API is supported in recent Chromium-based browsers; see
+      <a href="https://caniuse.com/view-transitions" target="_blank" rel="noopener">caniuse</a> for current coverage.
+      Everywhere else, <code>vt-helper</code>'s fallback runs your callback with no animation, so your DOM updates
+      are consistent across all browsers &mdash; you only lose the transition effect, never the update itself.
+    </p>
+  </section>
+</main>
+
+<footer>
+  MIT &copy; <a href="https://github.com/valyefimov" target="_blank" rel="noopener">Valentyn Yefimov</a> &middot;
+  <a href="https://www.npmjs.com/package/vt-helper" target="_blank" rel="noopener">npm</a> &middot;
+  <a href="https://github.com/valyefimov/vt-helper" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+<script type="module">
+  import { transition, transitionSequence, isViewTransitionsSupported } from 'https://esm.sh/vt-helper@latest';
+
+  const banner = document.getElementById('support-banner');
+  const supportText = document.getElementById('support-text');
+  const supported = isViewTransitionsSupported();
+  if (supported) {
+    banner.classList.add('supported');
+    supportText.textContent = 'Your browser supports the View Transitions API — demos below are animated.';
+  } else {
+    supportText.textContent = 'Your browser does not support the View Transitions API — demos below use the fallback (no animation, DOM still updates).';
+  }
+
+  // Demo 1: theme toggle
+  const card = document.getElementById('toggle-card');
+  document.getElementById('toggle-btn').addEventListener('click', () => {
+    transition(() => {
+      card.classList.toggle('dark');
+    });
+  });
+
+  // Demo 2: reorder list
+  const list = document.getElementById('reorder-list');
+  document.getElementById('reorder-btn').addEventListener('click', () => {
+    transition(() => {
+      list.append(list.firstElementChild);
+    });
+  });
+
+  // Demo 3: sequence
+  const panel = document.getElementById('sequence-panel');
+  const seqBtn = document.getElementById('sequence-btn');
+  seqBtn.addEventListener('click', async () => {
+    seqBtn.disabled = true;
+    panel.textContent = 'Step 0 of 3';
+    await transitionSequence([
+      () => { panel.textContent = 'Step 1 of 3'; },
+      () => { panel.textContent = 'Step 2 of 3'; },
+      () => { panel.textContent = 'Step 3 of 3 — done'; },
+    ]);
+    seqBtn.disabled = false;
+  });
+</script>
+
+</body>
+</html>

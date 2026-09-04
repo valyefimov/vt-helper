@@ -7,6 +7,8 @@
 
 A tiny, zero-dependency helper for the browser [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), with automatic fallback for unsupported browsers.
 
+📖 [Live docs with interactive examples](https://valyefimov.github.io/vt-helper/)
+
 `document.startViewTransition` is great, but every call site ends up rewriting the same feature-detection boilerplate. `vt-helper` wraps it once so your code looks the same whether or not the browser supports it.
 
 ## Install

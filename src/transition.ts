@@ -67,16 +67,12 @@ export function transition(callback: TransitionCallback): TransitionHandle {
   }
 
   const updateCallbackDone = runFallbackCallback(callback);
-  // In the fallback path there is no animation, so ready/finished resolve
-  // at the same point as the DOM update itself.
-  const settled = updateCallbackDone.then(
-    () => undefined,
-    () => undefined
-  );
+  // In the fallback path there is no animation, so ready/finished settle
+  // at the same point as the DOM update itself (including rejections).
 
   return {
-    finished: settled,
-    ready: settled,
+    finished: updateCallbackDone,
+    ready: updateCallbackDone,
     updateCallbackDone,
     skipTransition: () => {
       /* no-op: no animation to skip in fallback mode */

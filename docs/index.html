@@ -386,6 +386,7 @@
   <div class="nav-inner">
     <a class="brand" href="#top"><span class="dot"></span>vt-helper</a>
     <nav class="links">
+      <a href="#why">Why</a>
       <a href="#install">Install</a>
       <a href="#examples">Examples</a>
       <a href="#api">API</a>
@@ -422,6 +423,68 @@
       whether or not the browser supports it &mdash; on unsupported browsers your DOM update still runs,
       you just lose the animation.
     </p>
+
+    <p class="sub">
+      There's no shortage of View Transitions tooling, but most of it is either a low-level toolkit or
+      locked to one framework. <code>vt-helper</code> is neither: it's a tiny, framework-agnostic wrapper
+      focused on one job &mdash; making <code>startViewTransition</code> and multi-step sequencing safe to
+      call everywhere, with zero dependencies.
+    </p>
+
+    <table class="api-table">
+      <thead>
+        <tr><th>Package</th><th>What it does</th><th>Where it doesn't fit</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://github.com/GoogleChromeLabs/view-transitions-toolkit" target="_blank" rel="noopener">view-transitions-toolkit</a><br /><span style="color: var(--fg-muted); font-size: 0.82em;">(Chrome Labs)</span></td>
+          <td>Full toolkit: feature detection, animation optimization, playback control, temporary names</td>
+          <td>Low-level and broad in scope &mdash; more infrastructure than a drop-in helper</td>
+        </tr>
+        <tr>
+          <td><code>next-view-transitions</code></td>
+          <td>View transitions for Next.js App Router</td>
+          <td>Next.js only</td>
+        </tr>
+        <tr>
+          <td><code>use-view-transitions</code></td>
+          <td>React hook</td>
+          <td>React only</td>
+        </tr>
+        <tr>
+          <td><code>vue-view-transitions</code></td>
+          <td>Vue composable</td>
+          <td>Vue only</td>
+        </tr>
+        <tr>
+          <td>Motion <code>animateView()</code></td>
+          <td>Wraps view transitions with extra animation features</td>
+          <td>Pulls in the Motion library</td>
+        </tr>
+        <tr>
+          <td>React <code>&lt;ViewTransition&gt;</code> <span style="color: var(--fg-muted); font-size: 0.82em;">(canary)</span></td>
+          <td>Native React support</td>
+          <td>Experimental, React-only</td>
+        </tr>
+        <tr>
+          <td>Chrome's <code>transitionHelper</code> snippet</td>
+          <td>Minimal feature-detection helper from Chrome's docs</td>
+          <td>Not a package &mdash; no sequencing, no types, copy-pasted per project</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="sub">
+      <code>vt-helper</code> fills the gap between "copy a snippet from Chrome's docs" and "adopt a whole
+      toolkit or framework binding":
+    </p>
+    <ul class="sub" style="padding-left: 20px; margin-top: -8px;">
+      <li><strong>Framework-agnostic</strong> &mdash; plain DOM API, works with React, Vue, Svelte, or vanilla JS</li>
+      <li><strong>Zero dependencies</strong> &mdash; nothing to audit, nothing to pull in transitively</li>
+      <li><strong>Same shape, always</strong> &mdash; the fallback returns a <code>TransitionHandle</code> with the same <code>finished</code> / <code>ready</code> / <code>updateCallbackDone</code> / <code>skipTransition()</code> shape as the native <code>ViewTransition</code>, so calling code never branches on support</li>
+      <li><strong>Sequencing built in</strong> &mdash; <code>transitionSequence()</code> chains steps without overlap, which the native API and most wrappers leave for you to implement</li>
+      <li><strong>Small and typed</strong> &mdash; a couple hundred lines of TypeScript, fully typed, tree-shakeable</li>
+    </ul>
   </section>
 
   <section id="install">

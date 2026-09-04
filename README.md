@@ -11,6 +11,28 @@ A tiny, zero-dependency helper for the browser [View Transitions API](https://de
 
 `document.startViewTransition` is great, but every call site ends up rewriting the same feature-detection boilerplate. `vt-helper` wraps it once so your code looks the same whether or not the browser supports it.
 
+## Why vt-helper?
+
+There's no shortage of View Transitions tooling, but most of it is either a low-level toolkit or locked to one framework. `vt-helper` is neither: it's a tiny, framework-agnostic wrapper focused on one job - making `startViewTransition` and multi-step sequencing safe to call everywhere, with zero dependencies.
+
+| Package | What it does | Where it doesn't fit |
+|---|---|---|
+| [**view-transitions-toolkit**](https://github.com/GoogleChromeLabs/view-transitions-toolkit) (Chrome Labs) | Full toolkit: feature detection, animation optimization, playback control, temporary names | Low-level and broad in scope - more infrastructure than a drop-in helper |
+| **next-view-transitions** | View transitions for Next.js App Router | Next.js only |
+| **use-view-transitions** | React hook | React only |
+| **vue-view-transitions** | Vue composable | Vue only |
+| **Motion `animateView()`** | Wraps view transitions with extra animation features | Pulls in the Motion library |
+| React `<ViewTransition>` (canary) | Native React support | Experimental, React-only |
+| Chrome's own `transitionHelper` snippet | Minimal feature-detection helper from Chrome's docs | Not a package - no sequencing, no types, copy-pasted per project |
+
+`vt-helper` fills the gap between "copy a snippet from Chrome's docs" and "adopt a whole toolkit or framework binding":
+
+- **Framework-agnostic** - plain DOM API, works with React, Vue, Svelte, or vanilla JS
+- **Zero dependencies** - nothing to audit, nothing to pull in transitively
+- **Same shape, always** - the fallback returns a `TransitionHandle` with the same `finished` / `ready` / `updateCallbackDone` / `skipTransition()` shape as the native `ViewTransition`, so calling code never branches on support
+- **Sequencing built in** - `transitionSequence()` chains steps without overlap, which the native API and most wrappers leave for you to implement
+- **Small and typed** - a couple hundred lines of TypeScript, fully typed, tree-shakeable
+
 ## Install
 
 ```sh

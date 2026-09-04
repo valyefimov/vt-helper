@@ -56,6 +56,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "overrides": {
+    "esbuild": ">=0.28.1"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
     "@eslint/js": "^9.0.0",

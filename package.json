@@ -1,6 +1,6 @@
 {
   "name": "vt-helper",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A tiny, zero-dependency helper for the browser View Transitions API with automatic fallback for unsupported browsers.",
   "type": "module",
   "main": "./dist/index.cjs",

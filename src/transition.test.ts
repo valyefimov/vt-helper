@@ -87,14 +87,13 @@ describe('transitionSequence', () => {
   it('runs steps in order, awaiting each finished before starting the next', async () => {
     const order: number[] = [];
     const steps = [1, 2, 3].map(
-      (n) =>
-        () =>
-          new Promise<void>((resolve) => {
-            setTimeout(() => {
-              order.push(n);
-              resolve();
-            }, 0);
-          })
+      (n) => () =>
+        new Promise<void>((resolve) => {
+          setTimeout(() => {
+            order.push(n);
+            resolve();
+          }, 0);
+        })
     );
 
     await transitionSequence(steps);
